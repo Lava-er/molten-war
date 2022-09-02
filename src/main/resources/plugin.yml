@@ -1,0 +1,15 @@
+name: MoltenWar
+version: '${project.version}'
+main: club.lavaer.moltenwar.MoltenWar
+api-version: 1.18
+authors: [ Lava_er ]
+description: 114514
+commands:
+  cd:
+    usage: "/cd"
+    description: "打开菜单"
+  test-economy:
+    usage: "/test-economy"
+    description: "经济系统侧睡"
+depend:
+  - Vault
