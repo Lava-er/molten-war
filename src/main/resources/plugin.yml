@@ -11,5 +11,8 @@ commands:
   test-economy:
     usage: "/test-economy"
     description: "经济系统侧睡"
+  lavagod:
+    usage: "/lavagod"
+    description: "上帝模式"
 depend:
   - Vault

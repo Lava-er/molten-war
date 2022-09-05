@@ -22,7 +22,7 @@ public class LavaItem {
     public String lore;  //补充
     public Material material;  //材料
     public String displayName;  //显示的名字
-    public int itemtype;
+    public int itemtype = 0;
 
     NamespacedKey ID = new NamespacedKey(MoltenWar.instance, "id");
     NamespacedKey ITEMTYPE = new NamespacedKey(MoltenWar.instance, "itemType");

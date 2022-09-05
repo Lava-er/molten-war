@@ -1,49 +1,29 @@
 package club.lavaer.moltenwar.functions;
 
 import club.lavaer.moltenwar.MoltenWar;
-import com.destroystokyo.paper.block.TargetBlockInfo;
-import com.destroystokyo.paper.entity.Pathfinder;
-import com.destroystokyo.paper.entity.TargetEntityInfo;
-import net.kyori.adventure.text.Component;
+import club.lavaer.moltenwar.lavaitem.LavaCaster;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.*;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.PistonMoveReaction;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
-import org.bukkit.entity.*;
-import org.bukkit.entity.memory.MemoryKey;
-import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.inventory.EntityEquipment;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.loot.LootTable;
-import org.bukkit.metadata.MetadataValue;
-import org.bukkit.permissions.Permission;
-import org.bukkit.permissions.PermissionAttachment;
-import org.bukkit.permissions.PermissionAttachmentInfo;
-import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.util.BoundingBox;
-import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Objects;
 
-import static club.lavaer.moltenwar.MoltenWar.redLoc;
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
 
@@ -72,7 +52,7 @@ public class Functions {
                 //防止打到自己
                 if(entity.getUniqueId()==player.getUniqueId())
                     continue;
-                hit(player,damage,entity);
+                hit(player,damage,entity,"枪杀");
                 hit = true;
                 break;
             }
@@ -100,12 +80,13 @@ public class Functions {
             @Override
             public void run() {
                 times++;
-                bossBar.setProgress(times/100.0);
+                bossBar.setProgress(times/60.0);
                 world.spawnParticle(Particle.VILLAGER_ANGRY,current,20);
-                if(times == 100){
+                if(times == 60){
                     //current.getBlock().setType(Material.DIAMOND_BLOCK);
-                    for(Entity entity:world.getNearbyEntities(current,6,6,6)) if(entity instanceof LivingEntity) hit(player,16,entity);
+                    for(Entity entity:world.getNearbyEntities(current,6,6,6)) if(entity instanceof LivingEntity) hit(player,18,entity, "炸死了");
                     world.spawnParticle(Particle.EXPLOSION_HUGE,current,5);
+                    world.playSound(current,Sound.ENTITY_GENERIC_EXPLODE,1,1);
                     bossBar.setVisible(false);
                     cancel();
                 }
@@ -126,7 +107,8 @@ public class Functions {
                 //current向目光方向继续延伸一段
                 current.add(direction);
                 //召唤粒子效果，使其看得见
-                world.spawnParticle(Particle.VILLAGER_HAPPY,current,2);
+                world.spawnParticle(Particle.ASH,current,1);
+                world.spawnParticle(Particle.WHITE_ASH,current,1);
                 //player.teleport(current);
                 //反弹模块
                 if(!current.getBlock().isPassable()){
@@ -172,29 +154,43 @@ public class Functions {
                     //记录上一次经过的空气方块
                     block=current.getBlock();
                 }
-                if(times > 0.5) cancel();
+                if(times > 2) cancel();
                 direction.setY(direction.getY() - times*times*gravity);
             }
         }.runTaskTimer(MoltenWar.instance,0L,1L);
     }
 
-    public static void hit (Player player, int damage, Entity entity){
+    public static void hit (Player player, double damage, Entity entity, String cause){
         World world = player.getWorld();
         Location xx = entity.getLocation();
         Economy econ = MoltenWar.getEconomy();
 
+        NamespacedKey GODMODE = new NamespacedKey(MoltenWar.instance, "godmode");
+
+        int godmode = 0;
+        try{
+            godmode = entity.getPersistentDataContainer().get(GODMODE, PersistentDataType.INTEGER);
+        }catch(NullPointerException ignored){}
+        if(godmode == 1) {
+            player.sendMessage(ChatColor.RED + "对方处于无敌时间");
+            return;
+        }
+        if(!(entity instanceof LivingEntity)){
+            return;
+        }
         NamespacedKey TEAM = new NamespacedKey(MoltenWar.instance, "team");
         String team = null;String teams = null;
         try{
             team = player.getPersistentDataContainer().get(TEAM, PersistentDataType.STRING);
             teams = entity.getPersistentDataContainer().get(TEAM, PersistentDataType.STRING);
         }catch (NullPointerException ignored){}
-        if(Objects.equals(team, teams)){
+        if(Objects.equals(team, teams) && player.getUniqueId() != entity.getUniqueId()){
             return;
         }
 
         world.spawnParticle(Particle.CRIT,xx,40);
         world.spawnParticle(Particle.SOUL_FIRE_FLAME,xx,25);
+        world.spawnParticle(Particle.DAMAGE_INDICATOR,xx,20);
         player.getWorld().playSound(entity.getLocation(),Sound.ENTITY_PLAYER_HURT,10,1);
         player.playSound(player.getLocation(),Sound.ENTITY_ARROW_HIT_PLAYER,10,1);
 
@@ -205,9 +201,72 @@ public class Functions {
             ((LivingEntity) entity).setHealth(((LivingEntity) entity).getHealth()-damage);
         }else{  //可以击杀
             player.sendMessage(ChatColor.YELLOW + "击杀！+2000 $");
-            //直接击杀，记录人头归属
-            ((LivingEntity) entity).damage(10000, player);
+            ((LivingEntity) entity).setHealth(0);
+            world.spawnParticle(Particle.TOTEM,xx,20);
             EconomyResponse r = econ.depositPlayer(player, 2000);
+            for(Player players : player.getWorld().getPlayers()){
+                players.sendMessage(ChatColor.GREEN + player.getName() +" "+ ChatColor.YELLOW + cause + " " + ChatColor.GREEN +entity.getName());
+            }
         }
+    }
+    public static void PlayRespawn(Player player){
+        NamespacedKey TEAM = new NamespacedKey(MoltenWar.instance, "team");
+        String team = null;
+        try{
+            team = player.getPersistentDataContainer().get(TEAM, PersistentDataType.STRING);
+        }catch (NullPointerException ignored){}
+        if(team != null) new LavaCaster(5, "手榴弹","手榴弹，右键丢出", Material.STONE_BUTTON).giveItem(player,2);
+        NamespacedKey GODMODE = new NamespacedKey(MoltenWar.instance, "godmode");
+
+
+        if(Objects.equals(team, "red")){
+            Location a = MoltenWar.instance.getConfig().getLocation("redSpawn");
+            player.setBedSpawnLocation(a,true);
+            ItemStack itemStack = new ItemStack(Material.LEATHER_HELMET);
+            LeatherArmorMeta meta = (LeatherArmorMeta)itemStack.getItemMeta();
+            meta.setColor(Color.RED);
+            itemStack.setItemMeta(meta);
+            player.getInventory().setHelmet(itemStack);
+            player.teleport(a);
+        }else if(Objects.equals(team, "blue")){
+            Location a = MoltenWar.instance.getConfig().getLocation("blueSpawn");
+            player.setBedSpawnLocation(a,true);
+            ItemStack itemStack = new ItemStack(Material.LEATHER_HELMET);
+            LeatherArmorMeta meta = (LeatherArmorMeta)itemStack.getItemMeta();
+            meta.setColor(Color.BLUE);
+            itemStack.setItemMeta(meta);
+            player.getInventory().setHelmet(itemStack);
+            player.teleport(a);
+        }
+
+        new BukkitRunnable(){
+            @Override
+            public void run() {
+                player.getPersistentDataContainer().set(GODMODE, PersistentDataType.INTEGER, 0);
+            }
+        }.runTaskLater(MoltenWar.instance, 3*20);
+
+
+    }
+
+    public Object getNBT(Object object,String key,PersistentDataType p){
+        if(object instanceof ItemStack){
+            ItemStack itemStack = (ItemStack) object;
+            return itemStack.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(MoltenWar.instance, key), p);
+        }else if(object instanceof Entity){
+            Entity entity = (Entity) object;
+            return entity.getPersistentDataContainer().get(new NamespacedKey(MoltenWar.instance, key), p);
+        }
+        return null;
+    }
+    public static ItemMeta setNBT(ItemMeta meta,String key,Object value,PersistentDataType p){
+        meta.getPersistentDataContainer().set(new NamespacedKey(MoltenWar.instance, key), p, value);
+        return meta;
+    }
+    public static Entity setNBT(Entity entity,String key,Object value,PersistentDataType p){
+        try{
+            entity.getPersistentDataContainer().set(new NamespacedKey(MoltenWar.instance, key), p ,value);
+        }catch(NullPointerException ignored){}
+        return entity;
     }
 }

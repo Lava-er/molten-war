@@ -14,23 +14,15 @@ import org.bukkit.util.Vector;
 
 import java.util.Arrays;
 
+import static club.lavaer.moltenwar.functions.Functions.setNBT;
+
 public class LavaGun extends LavaItem{
     public int range; //射程
     public int damage; //伤害
     public int ammunitionLoad; //备弹量
     public int reloadTime; //换弹时间
     public int bulletTime; //上弹时间
-    public int status; //枪械状态
     public String ammoType; //子弹种类
-
-    NamespacedKey RANGE = new NamespacedKey(MoltenWar.instance, "range");
-    NamespacedKey DAMAGE = new NamespacedKey(MoltenWar.instance, "damage");
-    NamespacedKey AMMUNITIONLOAD = new NamespacedKey(MoltenWar.instance, "ammunitionLoad");
-    NamespacedKey RELOADTIME = new NamespacedKey(MoltenWar.instance, "reloadTime");
-    NamespacedKey AMMOTYPE = new NamespacedKey(MoltenWar.instance, "ammoType");
-    NamespacedKey BULLETTIME = new NamespacedKey(MoltenWar.instance, "bulletTime");
-    NamespacedKey STATUS = new NamespacedKey(MoltenWar.instance, "status");
-
 
     public LavaGun(int id,String name, String lore, Material material, int range, String ammoType, int damage, int ammunitionLoad, int reloadTime,int bulletTime){
         super(id, name, lore, material, "枪械", 1);
@@ -50,16 +42,15 @@ public class LavaGun extends LavaItem{
         SBItem.setAmount(amount);
         ItemMeta SBMeta = SBItem.getItemMeta();
 
-        PersistentDataContainer dataContainer = SBMeta.getPersistentDataContainer();
-        dataContainer.set(ID, PersistentDataType.INTEGER, id);
-        dataContainer.set(ITEMTYPE, PersistentDataType.INTEGER, 1);
-        dataContainer.set(STATUS, PersistentDataType.INTEGER, 1);
-        dataContainer.set(AMMOTYPE, PersistentDataType.STRING, ammoType);
-        dataContainer.set(RANGE, PersistentDataType.INTEGER, range);
-        dataContainer.set(DAMAGE, PersistentDataType.INTEGER, damage);
-        dataContainer.set(AMMUNITIONLOAD , PersistentDataType.INTEGER, ammunitionLoad);
-        dataContainer.set(RELOADTIME, PersistentDataType.INTEGER, reloadTime);
-        dataContainer.set(BULLETTIME, PersistentDataType.INTEGER, bulletTime);
+        SBMeta = setNBT(SBMeta, "id", id, PersistentDataType.INTEGER);
+        SBMeta = setNBT(SBMeta, "itemtype", 1, PersistentDataType.INTEGER);
+        SBMeta = setNBT(SBMeta, "status", 1, PersistentDataType.INTEGER);
+        SBMeta = setNBT(SBMeta, "ammotype", ammoType, PersistentDataType.STRING);
+        SBMeta = setNBT(SBMeta, "range", range, PersistentDataType.INTEGER);
+        SBMeta = setNBT(SBMeta, "damage", damage, PersistentDataType.INTEGER);
+        SBMeta = setNBT(SBMeta, "ammunitionLoad", ammunitionLoad, PersistentDataType.INTEGER);
+        SBMeta = setNBT(SBMeta, "reloadTime", reloadTime, PersistentDataType.INTEGER);
+        SBMeta = setNBT(SBMeta, "bulletTime", bulletTime, PersistentDataType.INTEGER);
 
         SBMeta.setDisplayName(displayName);
         SBMeta.setLore(Arrays.asList(lore,ChatColor.WHITE+"使用"+ChatColor.GREEN+ammoType+"mm"+ChatColor.WHITE+"子弹"));

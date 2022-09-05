@@ -1,24 +1,23 @@
 package club.lavaer.moltenwar.menu;
 
 import club.lavaer.moltenwar.MoltenWar;
+import club.lavaer.moltenwar.functions.Loc30;
 import club.lavaer.moltenwar.lavaitem.LavaCaster;
 import club.lavaer.moltenwar.lavaitem.LavaGun;
 import club.lavaer.moltenwar.lavaitem.LavaItem;
-import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
+import club.lavaer.moltenwar.lavaitem.LavaSword;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import static club.lavaer.moltenwar.MoltenWar.blueLoc;
-import static club.lavaer.moltenwar.MoltenWar.redLoc;
+import java.util.Objects;
 
 //菜单监听器
 public class MenusListener implements Listener {
@@ -77,23 +76,30 @@ public class MenusListener implements Listener {
                 return;
             }
 
+
             NamespacedKey TEAM = new NamespacedKey(MoltenWar.instance, "team");
             NamespacedKey GUN = new NamespacedKey(MoltenWar.instance, "gun");
 
             if (clickedItem.getItemMeta().getDisplayName().equals(playMenu.REDTEAM)){
                 dataContainer.set(TEAM, PersistentDataType.STRING, "red");
+
                 player.sendMessage(ChatColor.RED + "您已加入红队");
             }
             if (clickedItem.getItemMeta().getDisplayName().equals(playMenu.BLUETEAM)){
                 dataContainer.set(TEAM, PersistentDataType.STRING, "blue");
+
                 player.sendMessage(ChatColor.BLUE + "您已加入蓝队");
             }
             if (clickedItem.getItemMeta().getDisplayName().equals(playMenu.REDSPAWN)){
-                redLoc = player.getLocation();
+                MoltenWar.instance.getConfig().set("redSpawn", player.getLocation());
+                MoltenWar.instance.saveConfig();
+
                 player.sendMessage(ChatColor.RED + "红队重生点已设置");
             }
             if (clickedItem.getItemMeta().getDisplayName().equals(playMenu.BLUESPAWN)){
-                blueLoc = player.getLocation();
+                MoltenWar.instance.getConfig().set("blueSpawn", player.getLocation());
+                MoltenWar.instance.saveConfig();
+
                 player.sendMessage(ChatColor.BLUE + "蓝队重生点已设置");
             }
             if (clickedItem.getItemMeta().getDisplayName().equals(playMenu.START)){
@@ -107,29 +113,54 @@ public class MenusListener implements Listener {
                     try{
                         gun = players.getPersistentDataContainer().get(GUN, PersistentDataType.STRING);
                     }catch (NullPointerException ignored){}
-                    if(team.equals("red")){
-                        players.setBedSpawnLocation(redLoc,true);
-                        players.teleport(redLoc);
+                    if(Objects.equals(team, "red")){
+                        Location a = MoltenWar.instance.getConfig().getLocation("redSpawn");
+                        players.setBedSpawnLocation(a,true);
+                        ItemStack itemStack = new ItemStack(Material.LEATHER_HELMET);
+                        LeatherArmorMeta meta = (LeatherArmorMeta)itemStack.getItemMeta();
+                        meta.setColor(Color.RED);
+                        itemStack.setItemMeta(meta);
+                        players.getInventory().setHelmet(itemStack);
+                        players.teleport(a);
+                    }else if(team.equals("blue")){
+                        Location a = MoltenWar.instance.getConfig().getLocation("blueSpawn");
+                        players.setBedSpawnLocation(a,true);
+                        ItemStack itemStack = new ItemStack(Material.LEATHER_HELMET);
+                        LeatherArmorMeta meta = (LeatherArmorMeta)itemStack.getItemMeta();
+                        meta.setColor(Color.BLUE);
+                        itemStack.setItemMeta(meta);
+                        players.getInventory().setHelmet(itemStack);
+                        players.teleport(a);
+                    }else{
+                        Location a = MoltenWar.instance.getConfig().getLocation("blueSpawn");
+                        players.setBedSpawnLocation(a,true);
+                        players.teleport(a);
                     }
-                    if(team.equals("blue")){
-                        players.setBedSpawnLocation(blueLoc,true);
-                        players.teleport(blueLoc);
+                    switch (gun) {
+                        case "AKM":
+                            LavaGun AKM = new LavaGun(2, "AKM", "AKM突击步枪", Material.MAGENTA_DYE, 80, "7.62", 5, 30, 2600, 100);
+                            AKM.giveItem(players, 1);
+                            break;
+                        case "AWM":
+                            LavaGun AWM = new LavaGun(3, "AWM", "AWM狙击枪", Material.NETHERITE_SHOVEL, 500, ".500", 16, 5, 2700, 2000);
+                            AWM.giveItem(players, 1);
+                            break;
+                        case "M416": {
+                            LavaGun M416 = new LavaGun(4, "M416", "M416突击步枪", Material.LIME_DYE, 100, "5.56", 5, 30, 2400, 100);
+                            M416.giveItem(players, 1);
+                            break;
+                        }
+                        default: {
+                            new LavaGun(4, "M416", "M416突击步枪", Material.LIME_DYE, 100, "5.56", 4, 30, 2400, 100).giveItem(players, 1);
+                            break;
+                        }
                     }
-                    if(gun.equals("AKM")){
-                        LavaGun AKM = new LavaGun(2,"AKM","AKM突击步枪", Material.MAGENTA_DYE, 80,"7.62",5,30, 2000,100);
-                        AKM.giveItem(players, 1);
-                    }
-                    if(gun.equals("AWM")){
-                        LavaGun AWM = new LavaGun(3,"AWM","AWM狙击枪",Material.NETHERITE_SHOVEL, 500,".500",16,5, 2700,2000);
-                        AWM.giveItem(players, 1);
-                    }
-                    if(gun.equals("M416")){
-                        LavaGun M416 = new LavaGun(4,"M416","M416突击步枪",Material.LIME_DYE,100,"5.56",5,30, 2400,100);
-                        M416.giveItem(players, 1);
-                    }
+
                     new LavaCaster(5, "手榴弹","手榴弹，右键丢出",Material.STONE_BUTTON).giveItem(players,2);
+                    new LavaSword(6, "军刀","军刀",Material.IRON_SWORD).giveItem(players,1);
                     //players.setMaxHealth(100);
                     players.setGameMode(GameMode.ADVENTURE);
+                    players.setCustomNameVisible(false);
                     players.closeInventory();
                 }
             }

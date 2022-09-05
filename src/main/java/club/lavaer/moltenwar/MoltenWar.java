@@ -5,10 +5,13 @@ import club.lavaer.moltenwar.menu.MenusListener;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -19,10 +22,6 @@ public final class MoltenWar extends JavaPlugin {
     private static final Logger log = Logger.getLogger("Minecraft");
     private static Economy econ = null;
     public static JavaPlugin instance;
-
-    public static Location redLoc;
-    public static Location blueLoc;
-
     //加载时
     @Override
     public void onLoad() {
@@ -80,6 +79,21 @@ public final class MoltenWar extends JavaPlugin {
                 sender.sendMessage(String.format("An error occured: %s", r.errorMessage));
             }
             return true;
+        }else if(command.getName().equals("lavagod")){
+            NamespacedKey GODMODE = new NamespacedKey(MoltenWar.instance, "godmode");
+
+            int godmode = 0;
+            try{
+                godmode = player.getPersistentDataContainer().get(GODMODE, PersistentDataType.INTEGER);
+            }catch(NullPointerException ignored){}
+
+            if(godmode == 1){
+                player.getPersistentDataContainer().set(GODMODE, PersistentDataType.INTEGER, 0);
+                player.sendMessage(ChatColor.RED+"上帝模式已关闭");
+            }else{
+                player.getPersistentDataContainer().set(GODMODE, PersistentDataType.INTEGER, 1);
+                player.sendMessage(ChatColor.RED+"上帝模式已开启");
+            }
         }
         return false;
     }

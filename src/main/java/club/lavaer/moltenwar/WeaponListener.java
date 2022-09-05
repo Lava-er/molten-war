@@ -2,23 +2,24 @@ package club.lavaer.moltenwar;
 
 import club.lavaer.moltenwar.functions.cdTime;
 import club.lavaer.moltenwar.functions.reloadTime;
-import club.lavaer.moltenwar.menu.Menu;
+import club.lavaer.moltenwar.lavaitem.LavaCaster;
 import club.lavaer.moltenwar.menu.playMenu;
-import org.bukkit.ChatColor;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Sound;
+import org.bukkit.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Pillager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.scheduler.BukkitRunnable;
 
-import static club.lavaer.moltenwar.functions.Functions.Grenade;
-import static club.lavaer.moltenwar.functions.Functions.shootOutAsLine;
+import static club.lavaer.moltenwar.functions.Functions.*;
 
 //武器监听器
 public class WeaponListener implements Listener {
@@ -131,6 +132,53 @@ public class WeaponListener implements Listener {
             player.setLevel(ammos);
         }else{
             player.setLevel(0);
+        }
+    }
+    @EventHandler
+    public void playerRespawn(PlayerRespawnEvent e){
+
+        Player player = e.getPlayer();
+        player.sendMessage(ChatColor.RED + "你死了！等待五秒复活");
+        player.setGameMode(GameMode.SPECTATOR);
+
+        NamespacedKey GODMODE = new NamespacedKey(MoltenWar.instance, "godmode");
+        player.getPersistentDataContainer().set(GODMODE, PersistentDataType.INTEGER, 1);
+        new BukkitRunnable(){
+            @Override
+            public void run() {
+                PlayRespawn(player);
+                player.setGameMode(GameMode.ADVENTURE);
+            }
+        }.runTaskLater(MoltenWar.instance, 5*20);
+    }
+    @EventHandler
+    public void melee (EntityDamageByEntityEvent event){
+        if(event.getDamager() instanceof Player){
+            Entity entity = event.getEntity();
+            Player player = (Player) event.getDamager();
+            ItemStack itemStack = player.getInventory().getItemInMainHand();
+            ItemMeta meta = itemStack.getItemMeta();
+
+            NamespacedKey ITEMTYPE = new NamespacedKey(MoltenWar.instance, "itemType");
+            int itemType = 0;
+            try{
+                itemType = meta.getPersistentDataContainer().get(ITEMTYPE, PersistentDataType.INTEGER);
+            }catch(NullPointerException ignored){}
+
+            if(itemType == 3 && player.getNearbyEntities(3,3,3).contains(entity)){
+                meta.getPersistentDataContainer().set(ITEMTYPE, PersistentDataType.INTEGER, -1);
+                itemStack.setItemMeta(meta);
+                hit(player, 10, entity,"刀了");
+                meta.getPersistentDataContainer().set(ITEMTYPE, PersistentDataType.INTEGER, 3);
+                itemStack.setItemMeta(meta);
+                entity.getWorld().spawnParticle(Particle.SWEEP_ATTACK,entity.getLocation(),1);
+                event.setCancelled(true);
+                return;
+            }
+
+            hit(player, event.getDamage(), entity, "击杀了");
+
+            event.setCancelled(true);
         }
     }
 }
