@@ -23,8 +23,9 @@ public class LavaGun extends LavaItem{
     public int reloadTime; //换弹时间
     public int bulletTime; //上弹时间
     public String ammoType; //子弹种类
+    public int recoil; //稳定性
 
-    public LavaGun(int id,String name, String lore, Material material, int range, String ammoType, int damage, int ammunitionLoad, int reloadTime,int bulletTime){
+    public LavaGun(int id,String name, String lore, Material material, int range, String ammoType, int damage, int ammunitionLoad, int reloadTime,int bulletTime,int recoil){
         super(id, name, lore, material, "枪械", 1);
         this.ammoType = ammoType;
         this.range = range;
@@ -32,6 +33,7 @@ public class LavaGun extends LavaItem{
         this.ammunitionLoad = ammunitionLoad + 1;
         this.reloadTime = reloadTime;
         this.bulletTime = bulletTime;
+        this.recoil = recoil;
     }
 
     @Override
@@ -51,6 +53,7 @@ public class LavaGun extends LavaItem{
         SBMeta = setNBT(SBMeta, "ammunitionLoad", ammunitionLoad, PersistentDataType.INTEGER);
         SBMeta = setNBT(SBMeta, "reloadTime", reloadTime, PersistentDataType.INTEGER);
         SBMeta = setNBT(SBMeta, "bulletTime", bulletTime, PersistentDataType.INTEGER);
+        SBMeta = setNBT(SBMeta, "recoil", recoil, PersistentDataType.INTEGER);
 
         SBMeta.setDisplayName(displayName);
         SBMeta.setLore(Arrays.asList(lore,ChatColor.WHITE+"使用"+ChatColor.GREEN+ammoType+"mm"+ChatColor.WHITE+"子弹"));

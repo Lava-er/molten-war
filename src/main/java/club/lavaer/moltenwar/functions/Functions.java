@@ -15,6 +15,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -24,21 +25,28 @@ import org.bukkit.util.Vector;
 
 import java.util.Objects;
 
+import static club.lavaer.moltenwar.MoltenWar.friendlyFire;
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
 
 public class Functions {
 
     //直线发射弹射物
-    public static void shootOutAsLine (Player player, int range, int damage){
+    public static void shootOutAsLine (Player player, int range, int damage, int Hdamage , int recoil){
         World world=player.getWorld();
+
+        int away = recoil;
+        if(player.isSprinting())away *= 2;
+        if(!player.isOnGround())away *= 2;
+        if(!player.isSprinting() && player.isOnGround()) away = 0;
         //得到玩家目光
+
         Location eyeLoc=player.getEyeLocation();
+        eyeLoc.setPitch(eyeLoc.getPitch()+(float) (Math.random()-0.5) * away);
+        eyeLoc.setYaw(eyeLoc.getYaw()+(float) (Math.random()-0.5) * away);
         Vector direction= eyeLoc.getDirection().multiply(0.5);
         //current初始值为eyeLoc，即起点
         Location current=eyeLoc.clone();
-
-
         boolean hit = false;
         while(true){
 
@@ -48,18 +56,29 @@ public class Functions {
             world.spawnParticle(Particle.ASH,current,1);
             world.spawnParticle(Particle.WHITE_ASH,current,1);
             //循环打到的实体
-            for(Entity entity:world.getNearbyEntities(current,0.5,0.5,0.5)){
+            for(Entity entity:world.getNearbyEntities(current,0.5,0.5,0.5)) {
                 //防止打到自己
-                if(entity.getUniqueId()==player.getUniqueId())
+                if (entity.getUniqueId() == player.getUniqueId())
                     continue;
-                hit(player,damage,entity,"枪杀");
+
+
+                if (entity instanceof Player){
+                    Location headLoc = entity.getLocation();
+                    headLoc.setY(headLoc.getY() + 1.8);
+                    if(current.distance(headLoc) < 0.8) hit(player,Hdamage,entity,"使用 "+player.getInventory().getItemInMainHand().getItemMeta().getDisplayName() +ChatColor.YELLOW +" 爆头枪杀",true);
+                    else hit(player,damage,entity,"使用 "+player.getInventory().getItemInMainHand().getItemMeta().getDisplayName() +ChatColor.YELLOW +" 枪杀",false);
+                }else hit(player,damage,entity,"使用 "+player.getInventory().getItemInMainHand().getItemMeta().getDisplayName() +ChatColor.YELLOW +" 枪杀",false);
+
                 hit = true;
                 break;
             }
             if (hit) break;
             //碰到无法穿透的方块
-            if(!current.getBlock().isPassable())
+            if(!current.getBlock().isPassable()){
+                world.spawnParticle(Particle.FLAME,current,1);
                 break;
+            }
+
             //如果飞出了范围
             if(current.distance(eyeLoc)>range)
                 break;
@@ -67,7 +86,6 @@ public class Functions {
     }
     public static void Grenade(Player player){
         World world=player.getWorld();
-        //目光：这里.multiply(0.5)是为了让魔咒看起来连贯，但会影响其速度
         Location eyeLoc=player.getEyeLocation();
         Vector direction= eyeLoc.getDirection().multiply(1);
         //current初始值为eyeLoc，即起点
@@ -84,7 +102,7 @@ public class Functions {
                 world.spawnParticle(Particle.VILLAGER_ANGRY,current,20);
                 if(times == 60){
                     //current.getBlock().setType(Material.DIAMOND_BLOCK);
-                    for(Entity entity:world.getNearbyEntities(current,6,6,6)) if(entity instanceof LivingEntity) hit(player,18,entity, "炸死了");
+                    for(Entity entity:world.getNearbyEntities(current,6,6,6)) if(entity instanceof LivingEntity) hit(player,18,entity, "炸死了",false);
                     world.spawnParticle(Particle.EXPLOSION_HUGE,current,5);
                     world.playSound(current,Sound.ENTITY_GENERIC_EXPLODE,1,1);
                     bossBar.setVisible(false);
@@ -160,7 +178,7 @@ public class Functions {
         }.runTaskTimer(MoltenWar.instance,0L,1L);
     }
 
-    public static void hit (Player player, double damage, Entity entity, String cause){
+    public static void hit (Player player, double damage, Entity entity, String cause, boolean crit){
         World world = player.getWorld();
         Location xx = entity.getLocation();
         Economy econ = MoltenWar.getEconomy();
@@ -184,7 +202,8 @@ public class Functions {
             team = player.getPersistentDataContainer().get(TEAM, PersistentDataType.STRING);
             teams = entity.getPersistentDataContainer().get(TEAM, PersistentDataType.STRING);
         }catch (NullPointerException ignored){}
-        if(Objects.equals(team, teams) && player.getUniqueId() != entity.getUniqueId()){
+        if(Objects.equals(team, teams) && player.getUniqueId() != entity.getUniqueId() && !friendlyFire){
+            player.sendMessage(ChatColor.RED + "不要攻击队友");
             return;
         }
 
@@ -195,15 +214,19 @@ public class Functions {
         player.playSound(player.getLocation(),Sound.ENTITY_ARROW_HIT_PLAYER,10,1);
 
         if(((LivingEntity) entity).getHealth() > damage) {
-            player.sendMessage(ChatColor.YELLOW + "命中！+100 $");
-            EconomyResponse r = econ.depositPlayer(player, 100);
+            if(crit){
+                player.sendMessage(ChatColor.YELLOW + "致命伤害！");
+            }else{
+                player.sendMessage(ChatColor.YELLOW + "命中！");
+            }
+
             //直接减血，防止无敌帧
             ((LivingEntity) entity).setHealth(((LivingEntity) entity).getHealth()-damage);
-        }else{  //可以击杀
-            player.sendMessage(ChatColor.YELLOW + "击杀！+2000 $");
+        }else if(((LivingEntity) entity).getHealth() > 0){  //可以击杀
+            player.sendMessage(ChatColor.YELLOW + "击杀！+300 $");
             ((LivingEntity) entity).setHealth(0);
             world.spawnParticle(Particle.TOTEM,xx,20);
-            EconomyResponse r = econ.depositPlayer(player, 2000);
+            EconomyResponse r = econ.depositPlayer(player, 300);
             for(Player players : player.getWorld().getPlayers()){
                 players.sendMessage(ChatColor.GREEN + player.getName() +" "+ ChatColor.YELLOW + cause + " " + ChatColor.GREEN +entity.getName());
             }
@@ -215,7 +238,7 @@ public class Functions {
         try{
             team = player.getPersistentDataContainer().get(TEAM, PersistentDataType.STRING);
         }catch (NullPointerException ignored){}
-        if(team != null) new LavaCaster(5, "手榴弹","手榴弹，右键丢出", Material.STONE_BUTTON).giveItem(player,2);
+        //if(team != null) new LavaCaster(5, "手榴弹","手榴弹，右键丢出", Material.STONE_BUTTON).giveItem(player,2);
         NamespacedKey GODMODE = new NamespacedKey(MoltenWar.instance, "godmode");
 
 
@@ -249,18 +272,27 @@ public class Functions {
 
     }
 
-    public Object getNBT(Object object,String key,PersistentDataType p){
-        if(object instanceof ItemStack){
-            ItemStack itemStack = (ItemStack) object;
-            return itemStack.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(MoltenWar.instance, key), p);
-        }else if(object instanceof Entity){
-            Entity entity = (Entity) object;
-            return entity.getPersistentDataContainer().get(new NamespacedKey(MoltenWar.instance, key), p);
+    public static Object getNBT(Object object,String key,PersistentDataType p){
+        try{
+            if(object instanceof ItemStack){
+                ItemStack itemStack = (ItemStack) object;
+                Object o = itemStack.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(MoltenWar.instance, key), p);
+                if ( o==null  && Objects.equals(p,PersistentDataType.INTEGER)) o = 0;
+                return o;
+            }else if(object instanceof Entity){
+                Entity entity = (Entity) object;
+                return entity.getPersistentDataContainer().get(new NamespacedKey(MoltenWar.instance, key), p);
+            }
+        }catch(NullPointerException ignored){
+            return  0;
         }
-        return null;
+        if(Objects.equals(p,PersistentDataType.STRING)) return null;
+        return 0;
     }
     public static ItemMeta setNBT(ItemMeta meta,String key,Object value,PersistentDataType p){
-        meta.getPersistentDataContainer().set(new NamespacedKey(MoltenWar.instance, key), p, value);
+        try{
+            meta.getPersistentDataContainer().set(new NamespacedKey(MoltenWar.instance, key), p, value);
+        }catch(NullPointerException ignored){}
         return meta;
     }
     public static Entity setNBT(Entity entity,String key,Object value,PersistentDataType p){
@@ -268,5 +300,10 @@ public class Functions {
             entity.getPersistentDataContainer().set(new NamespacedKey(MoltenWar.instance, key), p ,value);
         }catch(NullPointerException ignored){}
         return entity;
+    }
+    public static void speakToAllPlayers(String s, Player player){
+        for(Player players : player.getWorld().getPlayers()){
+            players.sendMessage(s);
+        }
     }
 }

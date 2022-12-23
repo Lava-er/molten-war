@@ -14,31 +14,31 @@ public class playMenu {
     public Inventory components;
     public Player owner;
     //创建文本
-    public static final String TITLE = "游玩时 菜单";
+    public static final String TITLE         = "游玩时 菜单";
 
-    public static final String REDTEAM = ChatColor.RED + "红队";
-    public static final String REDTEAMLORE = ChatColor.RED + "" + ChatColor.ITALIC + "加入红队";
+    public static final String REDTEAM       = ChatColor.RED + "红队";
+    public static final String REDTEAMLORE   = ChatColor.RED + "" + ChatColor.ITALIC + "加入红队";
 
-    public static final String BLUETEAM = ChatColor.BLUE + "蓝队";
-    public static final String BLUETEAMLORE = ChatColor.BLUE + "" + ChatColor.ITALIC + "加入蓝队";
+    public static final String BLUETEAM      = ChatColor.BLUE + "蓝队";
+    public static final String BLUETEAMLORE  = ChatColor.BLUE + "" + ChatColor.ITALIC + "加入蓝队";
 
-    public static final String REDSPAWN = ChatColor.RED + "红队出生点";
-    public static final String REDSPAWNLORE = ChatColor.RED + "" + ChatColor.ITALIC + "设置红队出生点";
+    public static final String REDSPAWN      = ChatColor.RED + "红队出生点";
+    public static final String REDSPAWNLORE  = ChatColor.RED + "" + ChatColor.ITALIC + "设置红队出生点";
 
-    public static final String BLUESPAWN = ChatColor.BLUE + "蓝队出生点";
+    public static final String BLUESPAWN     = ChatColor.BLUE + "蓝队出生点";
     public static final String BLUESPAWNLORE = ChatColor.BLUE + "" + ChatColor.ITALIC + "设置蓝队出生点";
 
-    public static final String START = ChatColor.GREEN + "开始游戏";
-    public static final String STARTLORE = ChatColor.GREEN + "" + ChatColor.ITALIC + "开始游戏";
+    public static final String START         = ChatColor.GREEN + "开始游戏";
+    public static final String STARTLORE     = ChatColor.GREEN + "" + ChatColor.ITALIC + "开始游戏";
 
-    public static final String AKM = ChatColor.GREEN + "AKM";
-    public static final String AKMLORE = ChatColor.GREEN + "" + ChatColor.ITALIC + "选择AKM作为主武器";
+    public static final String AKM           = ChatColor.GREEN + "AK47";
+    public static final String AKMLORE       = ChatColor.GREEN + "" + ChatColor.ITALIC + "选择AK47作为主武器";
 
-    public static final String M416 = ChatColor.GREEN + "M416";
-    public static final String M416LORE = ChatColor.GREEN + "" + ChatColor.ITALIC + "选择M416作为主武器";
+    public static final String M416          = ChatColor.GREEN + "M4A1";
+    public static final String M416LORE      = ChatColor.GREEN + "" + ChatColor.ITALIC + "选择M4A1作为主武器";
 
-    public static final String AWM = ChatColor.GREEN + "AWM";
-    public static final String AWMLORE = ChatColor.GREEN + "" + ChatColor.ITALIC + "选择AWM作为主武器";
+    public static final String AWM           = ChatColor.GREEN + "AWP";
+    public static final String AWMLORE       = ChatColor.GREEN + "" + ChatColor.ITALIC + "选择AWP作为主武器";
 
 
     //注册物品的方法
@@ -53,7 +53,7 @@ public class playMenu {
 
     //构造函数，并将物品注册进菜单栏
     public playMenu(Player player) {
-        components = Bukkit.createInventory(player, 18, TITLE);
+        components = Bukkit.createInventory(player, 27, TITLE);
         owner = player;
         //注册物品
         components.setItem(0, ItemReg(Material.RED_CANDLE, REDTEAM, REDTEAMLORE));

@@ -22,6 +22,10 @@ public final class MoltenWar extends JavaPlugin {
     private static final Logger log = Logger.getLogger("Minecraft");
     private static Economy econ = null;
     public static JavaPlugin instance;
+
+    public static int mode;
+    public static boolean friendlyFire;
+
     //加载时
     @Override
     public void onLoad() {

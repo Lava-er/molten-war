@@ -36,10 +36,11 @@ public class reloadTime extends Thread {
         dataContainer.set(STATUS, PersistentDataType.INTEGER, 0);
         itemStack.setItemMeta(SBMeta);
 
-        double jindu;
-        BossBar bossBar = Bukkit.createBossBar(new NamespacedKey(MoltenWar.instance, "a_interesting_bar"), "装弹时间", BarColor.WHITE, BarStyle.SOLID);
+        double jindu = 0;
+        BossBar bossBar = Bukkit.createBossBar(new NamespacedKey(MoltenWar.instance, "reload_bar"), "装弹时间", BarColor.WHITE, BarStyle.SOLID);
         bossBar.addPlayer(player);
         for(int i=1; i<=100; i++){
+            if(!player.getInventory().getItemInMainHand().equals(itemStack)) break;
             jindu = i/100.0;
             if(i==30)player.playSound(player.getLocation(), Sound.ITEM_CROSSBOW_LOADING_MIDDLE,20,1);
             try {
@@ -51,11 +52,16 @@ public class reloadTime extends Thread {
         }
         bossBar.setVisible(false);
         dataContainer.set(STATUS, PersistentDataType.INTEGER, 1);
-        int ammoUsed = ammunitionLoad - itemStack.getAmount();
-        useAmmo(player, ammoUsed, itemStack);
-        itemStack.setItemMeta(SBMeta);
-        itemStack.setAmount(ammunitionLoad);
-        player.playSound(player.getLocation(),Sound.ITEM_CROSSBOW_LOADING_END,20,1);
+        if(jindu == 1){
+            int ammoUsed = ammunitionLoad - itemStack.getAmount();
+            useAmmo(player, ammoUsed, itemStack);
+            itemStack.setItemMeta(SBMeta);
+            itemStack.setAmount(ammunitionLoad);
+            player.playSound(player.getLocation(),Sound.ITEM_CROSSBOW_LOADING_END,20,1);
+        }else{
+            itemStack.setItemMeta(SBMeta);
+        }
+
     }
 
     private void useAmmo(Player player, int ammoUsed, ItemStack itemStack) {

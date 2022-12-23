@@ -13,6 +13,8 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Arrays;
 
+import static club.lavaer.moltenwar.functions.Functions.setNBT;
+
 //模组自定义物品
 public class LavaItem {
     public final String TYPE = "物品";  //物品类型
@@ -23,9 +25,6 @@ public class LavaItem {
     public Material material;  //材料
     public String displayName;  //显示的名字
     public int itemtype = 0;
-
-    NamespacedKey ID = new NamespacedKey(MoltenWar.instance, "id");
-    NamespacedKey ITEMTYPE = new NamespacedKey(MoltenWar.instance, "itemType");
 
     public LavaItem(int id, String name, String lore, Material material){
         this.id = id;
@@ -52,15 +51,14 @@ public class LavaItem {
         ItemMeta SBMeta = SBItem.getItemMeta();
 
         //存入NBT
-        PersistentDataContainer dataContainer = SBMeta.getPersistentDataContainer();
-        dataContainer.set(ID, PersistentDataType.INTEGER, id);
-        dataContainer.set(ITEMTYPE, PersistentDataType.INTEGER, itemtype);
+        SBMeta = setNBT(SBMeta,"id",id,PersistentDataType.INTEGER);
+        SBMeta = setNBT(SBMeta,"itemtype",itemtype,PersistentDataType.INTEGER);
+
 
         SBMeta.setDisplayName(displayName);
         SBMeta.setLore(Arrays.asList(lore));
         SBItem.setItemMeta(SBMeta);
 
         player_inv.addItem(SBItem);
-
     }
 }
