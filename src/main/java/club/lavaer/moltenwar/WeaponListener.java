@@ -3,6 +3,7 @@ package club.lavaer.moltenwar;
 import club.lavaer.moltenwar.functions.cdTime;
 import club.lavaer.moltenwar.functions.reloadTime;
 import club.lavaer.moltenwar.lavaitem.LavaCaster;
+import club.lavaer.moltenwar.lavaitem.LavaItem;
 import club.lavaer.moltenwar.menu.playMenu;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -20,10 +21,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.swing.text.Position;
 
+import static club.lavaer.moltenwar.MoltenWar.playingT;
 import static club.lavaer.moltenwar.functions.Functions.*;
 
 //武器监听器
@@ -203,10 +206,12 @@ public class WeaponListener implements Listener {
 
         if(itemType == 1 && status == 1){
             NamespacedKey AMMOS = new NamespacedKey(MoltenWar.instance, "ammunitionLoad");
-            int ammos = meta.getPersistentDataContainer().get(AMMOS, PersistentDataType.INTEGER);
             NamespacedKey RETIME = new NamespacedKey(MoltenWar.instance, "reloadTime");
-            int retime = meta.getPersistentDataContainer().get(RETIME, PersistentDataType.INTEGER);
             NamespacedKey AMMO = new NamespacedKey(MoltenWar.instance, "ammoType");
+
+            int ammos = meta.getPersistentDataContainer().get(AMMOS, PersistentDataType.INTEGER);
+            int retime = meta.getPersistentDataContainer().get(RETIME, PersistentDataType.INTEGER);
+
             String ammo = meta.getPersistentDataContainer().get(AMMO, PersistentDataType.STRING);
 
             int ammoUsed = ammos - itemStack.getAmount();
@@ -226,6 +231,8 @@ public class WeaponListener implements Listener {
         Player player = e.getPlayer();
         PersistentDataContainer dataContainer = player.getPersistentDataContainer();
 
+        LavaItem customItem = new LavaItem(1,"菜单","菜单", Material.CLOCK);
+        customItem.giveItem(player,1);
         player.setGameMode(GameMode.SURVIVAL);
 
         NamespacedKey  a762 = new NamespacedKey(MoltenWar.instance, "7.62");
@@ -242,8 +249,10 @@ public class WeaponListener implements Listener {
         Player player = e.getPlayer();
         Block block = e.getBlock();
 
-        if(block.getType().equals(Material.OBSIDIAN)){
+        if(block.getType().equals(Material.OBSIDIAN) && player.getInventory().getItemInMainHand().getType().equals(Material.DIAMOND_PICKAXE)){
             speakToAllPlayers(ChatColor.YELLOW + "炸弹已经拆除",player);
+            block.setType(Material.AIR);
+            playingT.CTwin();
         }
         else if (!player.isOp())e.setCancelled(true);
     }
@@ -251,7 +260,7 @@ public class WeaponListener implements Listener {
     @EventHandler
     public void Plant(PlayerItemConsumeEvent e){
         Player player = e.getPlayer();
-        if(e.getItem().getType().equals(Material.BREAD)){
+        if(e.getItem().getType().equals(Material.GOLDEN_APPLE)){
             Location loc = player.getEyeLocation();
             Location BDLoc = new Location(loc.getWorld(),loc.getX(),loc.getY()-1,loc.getZ());
             Location FTLoc = new Location(loc.getWorld(),loc.getX(),loc.getY()-2,loc.getZ());
@@ -259,6 +268,9 @@ public class WeaponListener implements Listener {
             if(BDLoc.getBlock().getType().equals(Material.AIR) && FTLoc.getBlock().getType().equals(Material.BEDROCK)){
                 speakToAllPlayers(ChatColor.YELLOW + "炸弹已经安放",player);
                 BDLoc.getBlock().setType(Material.OBSIDIAN);
+                player.getInventory().getItemInMainHand().setAmount(0);
+                playingT.C4Plant();
+                e.setCancelled(true);
             }else{
                 player.sendMessage(ChatColor.RED + "请将C4炸药安装到正确位置！");
                 e.setCancelled(true);

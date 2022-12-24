@@ -26,6 +26,7 @@ public final class MoltenWar extends JavaPlugin {
     public static int mode;
     public static boolean friendlyFire;
 
+    public static Playing playingT;
     //加载时
     @Override
     public void onLoad() {
@@ -40,7 +41,6 @@ public final class MoltenWar extends JavaPlugin {
         if (!setupEconomy() ) {
             log.severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
             getServer().getPluginManager().disablePlugin(this);
-            return;
         }
     }
 
@@ -74,14 +74,7 @@ public final class MoltenWar extends JavaPlugin {
             new Menu(player).open();
             return true;
         }else if(command.getName().equals("test-economy")) { //经济测试命令
-            // Lets give the player 1.05 currency (note that SOME economic plugins require rounding!)
             sender.sendMessage(String.format("You have %s", econ.format(econ.getBalance(player.getName()))));
-            EconomyResponse r = econ.depositPlayer(player, 1.05);
-            if (r.transactionSuccess()) {
-                sender.sendMessage(String.format("You were given %s and now have %s", econ.format(r.amount), econ.format(r.balance)));
-            } else {
-                sender.sendMessage(String.format("An error occured: %s", r.errorMessage));
-            }
             return true;
         }else if(command.getName().equals("lavagod")){
             NamespacedKey GODMODE = new NamespacedKey(MoltenWar.instance, "godmode");
@@ -98,6 +91,8 @@ public final class MoltenWar extends JavaPlugin {
                 player.getPersistentDataContainer().set(GODMODE, PersistentDataType.INTEGER, 1);
                 player.sendMessage(ChatColor.RED+"上帝模式已开启");
             }
+        }else if(command.getName().equals("gg")){
+            playingT.CTwin();
         }
         return false;
     }

@@ -19,7 +19,7 @@ public class Menu {
     //创建文本
     public static final String TITLE = "MoltenWar 菜单";
 
-    public static final String GUN = ChatColor.GREEN + "枪械";
+    public static final String GUN = ChatColor.GREEN + "开始";
     public static final String GUNLORE = ChatColor.GREEN + "" + ChatColor.ITALIC + "获得服务器独特枪械";
 
     public static final String AMMO = ChatColor.GREEN + "弹药";

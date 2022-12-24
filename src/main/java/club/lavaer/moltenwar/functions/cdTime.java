@@ -3,7 +3,6 @@ package club.lavaer.moltenwar.functions;
 import club.lavaer.moltenwar.MoltenWar;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
-import org.bukkit.Sound;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;

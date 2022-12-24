@@ -22,10 +22,10 @@ public class playMenu {
     public static final String BLUETEAM      = ChatColor.BLUE + "蓝队";
     public static final String BLUETEAMLORE  = ChatColor.BLUE + "" + ChatColor.ITALIC + "加入蓝队";
 
-    public static final String REDSPAWN      = ChatColor.RED + "红队出生点";
+    public static final String REDSPAWN      = ChatColor.RED + "红队出生点(不要随便动!!!)";
     public static final String REDSPAWNLORE  = ChatColor.RED + "" + ChatColor.ITALIC + "设置红队出生点";
 
-    public static final String BLUESPAWN     = ChatColor.BLUE + "蓝队出生点";
+    public static final String BLUESPAWN     = ChatColor.BLUE + "蓝队出生点(不要随便动!!!)";
     public static final String BLUESPAWNLORE = ChatColor.BLUE + "" + ChatColor.ITALIC + "设置蓝队出生点";
 
     public static final String START         = ChatColor.GREEN + "开始游戏";

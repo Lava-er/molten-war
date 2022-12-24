@@ -14,5 +14,8 @@ commands:
   lavagod:
     usage: "/lavagod"
     description: "上帝模式"
+  gg:
+    usage: "/gg"
+    description: "结束此局"
 depend:
   - Vault
