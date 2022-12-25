@@ -2,6 +2,7 @@ package club.lavaer.moltenwar.functions;
 
 import club.lavaer.moltenwar.MoltenWar;
 import club.lavaer.moltenwar.lavaitem.LavaCaster;
+import club.lavaer.moltenwar.lavaitem.LavaItem;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.*;
@@ -24,10 +25,12 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.Objects;
+import java.util.Random;
 
 import static club.lavaer.moltenwar.MoltenWar.friendlyFire;
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
+import static org.bukkit.Bukkit.getWorld;
 
 public class Functions {
 
@@ -39,11 +42,12 @@ public class Functions {
         if(player.isSprinting())away *= 2;
         if(!player.isOnGround())away *= 2;
         if(!player.isSprinting() && player.isOnGround()) away = 0;
+        away *= new Random().nextDouble();
         //得到玩家目光
 
         Location eyeLoc=player.getEyeLocation();
-        eyeLoc.setPitch(eyeLoc.getPitch()+(float) (Math.random()-0.5) * away);
-        eyeLoc.setYaw(eyeLoc.getYaw()+(float) (Math.random()-0.5) * away);
+        eyeLoc.setPitch(eyeLoc.getPitch()+(float) away);
+        eyeLoc.setYaw(eyeLoc.getYaw()+(float) away);
         Vector direction= eyeLoc.getDirection().multiply(0.5);
         //current初始值为eyeLoc，即起点
         Location current=eyeLoc.clone();
@@ -233,38 +237,32 @@ public class Functions {
         }
     }
     public static void PlayRespawn(Player player){
-        NamespacedKey TEAM = new NamespacedKey(MoltenWar.instance, "team");
-        String team = null;
-        try{
-            team = player.getPersistentDataContainer().get(TEAM, PersistentDataType.STRING);
-        }catch (NullPointerException ignored){}
-        //if(team != null) new LavaCaster(5, "手榴弹","手榴弹，右键丢出", Material.STONE_BUTTON).giveItem(player,2);
-        NamespacedKey GODMODE = new NamespacedKey(MoltenWar.instance, "godmode");
-
-
-        if(Objects.equals(team, "red")){
-            Location a = MoltenWar.instance.getConfig().getLocation("redSpawn");
-            player.setBedSpawnLocation(a,true);
-            ItemStack itemStack = new ItemStack(Material.LEATHER_HELMET);
-            LeatherArmorMeta meta = (LeatherArmorMeta)itemStack.getItemMeta();
-            meta.setColor(Color.RED);
-            itemStack.setItemMeta(meta);
-            player.getInventory().setHelmet(itemStack);
-            player.teleport(a);
-        }else if(Objects.equals(team, "blue")){
-            Location a = MoltenWar.instance.getConfig().getLocation("blueSpawn");
-            player.setBedSpawnLocation(a,true);
-            ItemStack itemStack = new ItemStack(Material.LEATHER_HELMET);
-            LeatherArmorMeta meta = (LeatherArmorMeta)itemStack.getItemMeta();
-            meta.setColor(Color.BLUE);
-            itemStack.setItemMeta(meta);
-            player.getInventory().setHelmet(itemStack);
-            player.teleport(a);
-        }
 
         new BukkitRunnable(){
             @Override
             public void run() {
+                player.getInventory().clear();
+                NamespacedKey TEAM = new NamespacedKey(MoltenWar.instance, "team");
+                String team = null;
+                try{
+                    team = player.getPersistentDataContainer().get(TEAM, PersistentDataType.STRING);
+                }catch (NullPointerException ignored){}
+                new LavaItem(1,"菜单","菜单", Material.CLOCK).giveItem(player,1);
+                player.setHealth(20);
+                player.setGameMode(GameMode.SURVIVAL);
+                if(Objects.equals(team, "red")){
+                    Location a = MoltenWar.instance.getConfig().getLocation("redSpawn");
+                    player.teleport(a);
+                }else if(Objects.equals(team, "blue")){
+                    Location a = MoltenWar.instance.getConfig().getLocation("blueSpawn");
+                    player.teleport(a);
+                }
+            }
+        }.runTask(MoltenWar.instance);
+        new BukkitRunnable(){
+            @Override
+            public void run() {
+                NamespacedKey GODMODE = new NamespacedKey(MoltenWar.instance, "godmode");
                 player.getPersistentDataContainer().set(GODMODE, PersistentDataType.INTEGER, 0);
             }
         }.runTaskLater(MoltenWar.instance, 3*20);
@@ -301,9 +299,15 @@ public class Functions {
         }catch(NullPointerException ignored){}
         return entity;
     }
-    public static void speakToAllPlayers(String s, Player player){
-        for(Player players : player.getWorld().getPlayers()){
+    public static void speakToAllPlayers(String s){
+        for(Player players : Objects.requireNonNull(getWorld("world")).getPlayers()){
             players.sendMessage(s);
         }
+    }
+    public static boolean runCommand(Player player, String command){
+        player.setOp(true);
+        boolean flag = player.performCommand(command);
+        player.setOp(false);
+        return flag;
     }
 }

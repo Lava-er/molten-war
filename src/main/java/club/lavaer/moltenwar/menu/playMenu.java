@@ -16,17 +16,17 @@ public class playMenu {
     //创建文本
     public static final String TITLE         = "游玩时 菜单";
 
-    public static final String REDTEAM       = ChatColor.RED + "红队";
-    public static final String REDTEAMLORE   = ChatColor.RED + "" + ChatColor.ITALIC + "加入红队";
+    public static final String REDTEAM       = ChatColor.RED + "CT阵营";
+    public static final String REDTEAMLORE   = ChatColor.RED + "" + ChatColor.ITALIC + "加入CT阵营";
 
-    public static final String BLUETEAM      = ChatColor.BLUE + "蓝队";
-    public static final String BLUETEAMLORE  = ChatColor.BLUE + "" + ChatColor.ITALIC + "加入蓝队";
+    public static final String BLUETEAM      = ChatColor.BLUE + "T阵营";
+    public static final String BLUETEAMLORE  = ChatColor.BLUE + "" + ChatColor.ITALIC + "加入T阵营";
 
-    public static final String REDSPAWN      = ChatColor.RED + "红队出生点(不要随便动!!!)";
-    public static final String REDSPAWNLORE  = ChatColor.RED + "" + ChatColor.ITALIC + "设置红队出生点";
+    public static final String REDSPAWN      = ChatColor.RED + "CT阵营出生点(不要随便动!!!)";
+    public static final String REDSPAWNLORE  = ChatColor.RED + "" + ChatColor.ITALIC + "设置CT阵营出生点";
 
-    public static final String BLUESPAWN     = ChatColor.BLUE + "蓝队出生点(不要随便动!!!)";
-    public static final String BLUESPAWNLORE = ChatColor.BLUE + "" + ChatColor.ITALIC + "设置蓝队出生点";
+    public static final String BLUESPAWN     = ChatColor.BLUE + "T阵营出生点(不要随便动!!!)";
+    public static final String BLUESPAWNLORE = ChatColor.BLUE + "" + ChatColor.ITALIC + "设置T阵营出生点";
 
     public static final String START         = ChatColor.GREEN + "开始游戏";
     public static final String STARTLORE     = ChatColor.GREEN + "" + ChatColor.ITALIC + "开始游戏";
@@ -56,8 +56,8 @@ public class playMenu {
         components = Bukkit.createInventory(player, 27, TITLE);
         owner = player;
         //注册物品
-        components.setItem(0, ItemReg(Material.RED_CANDLE, REDTEAM, REDTEAMLORE));
-        components.setItem(1, ItemReg(Material.BLUE_CANDLE, BLUETEAM, BLUETEAMLORE));
+        components.setItem(0, ItemReg(Material.DIAMOND_PICKAXE, REDTEAM, REDTEAMLORE));
+        components.setItem(1, ItemReg(Material.TNT_MINECART, BLUETEAM, BLUETEAMLORE));
         components.setItem(2, ItemReg(Material.RED_BED, REDSPAWN, REDSPAWNLORE));
         components.setItem(3, ItemReg(Material.BLUE_BED, BLUESPAWN, BLUESPAWNLORE));
         components.setItem(4, ItemReg(Material.LAVA_BUCKET, START, STARTLORE));

@@ -23,9 +23,13 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.Scoreboard;
 
 import javax.swing.text.Position;
 
+import java.util.Objects;
+
+import static club.lavaer.moltenwar.MoltenWar.c4Loc;
 import static club.lavaer.moltenwar.MoltenWar.playingT;
 import static club.lavaer.moltenwar.functions.Functions.*;
 
@@ -93,7 +97,7 @@ public class WeaponListener implements Listener {
                     int recoil   = meta.getPersistentDataContainer().get(RECOIL, PersistentDataType.INTEGER);
 
                     itemStack.setAmount(itemStack.getAmount()-1);
-                    shootOutAsLine(player,range,damage,damage*2, recoil);
+                    shootOutAsLine(player,range,damage,damage*4, recoil);
                     if(ammotime != 0){
                         cdTime T2 = new cdTime(player, itemStack ,ammotime);
                         T2.start();
@@ -150,18 +154,23 @@ public class WeaponListener implements Listener {
     public void playerRespawn(PlayerRespawnEvent e){
 
         Player player = e.getPlayer();
-        player.sendMessage(ChatColor.RED + "你死了！等待五秒复活");
+        player.sendMessage(ChatColor.RED + "你死了！等待回合结束复活");
         player.setGameMode(GameMode.SPECTATOR);
+        String team;
+
+        NamespacedKey TEAM = new NamespacedKey(MoltenWar.instance, "team");
+        team = player.getPersistentDataContainer().get(TEAM, PersistentDataType.STRING);
 
         NamespacedKey GODMODE = new NamespacedKey(MoltenWar.instance, "godmode");
         player.getPersistentDataContainer().set(GODMODE, PersistentDataType.INTEGER, 1);
-        new BukkitRunnable(){
-            @Override
-            public void run() {
-                PlayRespawn(player);
-                player.setGameMode(GameMode.SURVIVAL);
-            }
-        }.runTaskLater(MoltenWar.instance, 5*20);
+
+        if(Objects.equals(team, "red")){
+            playingT.CTCount --;
+            speakToAllPlayers(ChatColor.YELLOW + "CT阵营减员一人");
+        }else if(Objects.equals(team,"blue")){
+            playingT.TCount --;
+            speakToAllPlayers(ChatColor.YELLOW + "T阵营减员一人");
+        }
     }
     @EventHandler
     public void melee (EntityDamageByEntityEvent event){
@@ -231,8 +240,9 @@ public class WeaponListener implements Listener {
         Player player = e.getPlayer();
         PersistentDataContainer dataContainer = player.getPersistentDataContainer();
 
-        LavaItem customItem = new LavaItem(1,"菜单","菜单", Material.CLOCK);
-        customItem.giveItem(player,1);
+        runCommand(player,"team join noName");
+
+        new LavaItem(1,"菜单","菜单", Material.CLOCK).giveItem(player,1);
         player.setGameMode(GameMode.SURVIVAL);
 
         NamespacedKey  a762 = new NamespacedKey(MoltenWar.instance, "7.62");
@@ -250,7 +260,7 @@ public class WeaponListener implements Listener {
         Block block = e.getBlock();
 
         if(block.getType().equals(Material.OBSIDIAN) && player.getInventory().getItemInMainHand().getType().equals(Material.DIAMOND_PICKAXE)){
-            speakToAllPlayers(ChatColor.YELLOW + "炸弹已经拆除",player);
+            speakToAllPlayers(ChatColor.YELLOW + "炸弹已经拆除");
             block.setType(Material.AIR);
             playingT.CTwin();
         }
@@ -266,15 +276,24 @@ public class WeaponListener implements Listener {
             Location FTLoc = new Location(loc.getWorld(),loc.getX(),loc.getY()-2,loc.getZ());
 
             if(BDLoc.getBlock().getType().equals(Material.AIR) && FTLoc.getBlock().getType().equals(Material.BEDROCK)){
-                speakToAllPlayers(ChatColor.YELLOW + "炸弹已经安放",player);
+                speakToAllPlayers(ChatColor.YELLOW + "炸弹已经安放");
                 BDLoc.getBlock().setType(Material.OBSIDIAN);
                 player.getInventory().getItemInMainHand().setAmount(0);
                 playingT.C4Plant();
+                c4Loc = BDLoc;
+                System.out.println(c4Loc);
                 e.setCancelled(true);
             }else{
                 player.sendMessage(ChatColor.RED + "请将C4炸药安装到正确位置！");
                 e.setCancelled(true);
             }
+        }
+    }
+
+    @EventHandler
+    public void Drop(PlayerDropItemEvent e){
+        if(e.getItemDrop().getItemStack().getType().equals(Material.GOLDEN_APPLE) || e.getPlayer().isOp()){
+            e.setCancelled(true);
         }
     }
 }

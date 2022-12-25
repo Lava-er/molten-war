@@ -22,6 +22,7 @@ import java.util.Objects;
 
 import static club.lavaer.moltenwar.MoltenWar.friendlyFire;
 import static club.lavaer.moltenwar.MoltenWar.playingT;
+import static club.lavaer.moltenwar.functions.Functions.speakToAllPlayers;
 
 //菜单监听器
 public class MenusListener implements Listener {
@@ -47,8 +48,7 @@ public class MenusListener implements Listener {
             }
 
             if (clickedItem.getItemMeta().getDisplayName().equals(Menu.GUN)){
-                LavaItem customItem = new LavaItem(1,"菜单","菜单", Material.CLOCK);
-                customItem.giveItem(player,1);
+                new LavaItem(1,"菜单","菜单", Material.CLOCK).giveItem(player,1);
             }
             if (clickedItem.getItemMeta().getDisplayName().equals(Menu.AMMO)){
                 NamespacedKey  a762 = new NamespacedKey(MoltenWar.instance, "7.62");
@@ -111,6 +111,9 @@ public class MenusListener implements Listener {
                 player.sendMessage(ChatColor.BLUE + "蓝队重生点已设置");
             }
             if (clickedItem.getItemMeta().getDisplayName().equals(playMenu.START)){
+                int TC = 0;
+                int CTC = 0;
+                boolean C4F = true;
                 for(Player players : player.getWorld().getPlayers()){
                     players.getInventory().clear();
                     String team = null;
@@ -123,13 +126,13 @@ public class MenusListener implements Listener {
                     }catch (NullPointerException ignored){}
                     switch (gun) {
                         case "AKM":
-                            new LavaGun(2, "AK47", "AK47突击步枪", Material.MAGENTA_DYE, 80, "7.62", 10, 30, 2500, 100,20).giveItem(players, 1);
+                            new LavaGun(2, "AK47", "AK47突击步枪", Material.MAGENTA_DYE, 80, "7.62", 5, 30, 3100, 100,3).giveItem(players, 1);
                             break;
                         case "AWM":
-                            new LavaGun(3, "AWP", "AWP狙击枪", Material.RED_DYE, 500, ".500", 16, 5, 3700, 2000,0).giveItem(players, 1);
+                            new LavaGun(3, "AWP", "AWP狙击枪", Material.RED_DYE, 500, ".500", 20, 5, 3700, 1500,0).giveItem(players, 1);
                             break;
                         case "M416": {
-                            new LavaGun(4, "M4A1-S", "M4A1-S突击步枪", Material.LIME_DYE, 100, "5.56", 8, 20, 3100, 100,10).giveItem(players, 1);
+                            new LavaGun(4, "M4A1-S", "M4A1-S突击步枪", Material.LIME_DYE, 100, "5.56", 4, 20, 2300, 100,1).giveItem(players, 1);
                             break;
                         }
                     }
@@ -144,7 +147,7 @@ public class MenusListener implements Listener {
                         itemStack.setItemMeta(meta);
                         players.getInventory().setHelmet(itemStack);
 
-
+                        CTC ++;
 
                         new LavaGun(5, "USP-S", "USP-S手枪", Material.BLUE_DYE, 50, "5.56", 5, 12, 2200, 200,0).giveItem(players, 1);
                         new LavaSword(6, "警察配刀","警察配刀",Material.IRON_SWORD).giveItem(players,1);
@@ -161,9 +164,14 @@ public class MenusListener implements Listener {
                         itemStack.setItemMeta(meta);
                         players.getInventory().setHelmet(itemStack);
 
-                        new LavaGun(6, "GLOCK", "格洛克手枪", Material.GREEN_DYE, 50, "7.62", 5, 20, 2700, 200,0).giveItem(players, 1);
+                        TC ++;
+
+                        new LavaGun(6, "GLOCK", "格洛克手枪", Material.GREEN_DYE, 50, "7.62", 4, 20, 2700, 200,0).giveItem(players, 1);
                         new LavaSword(6, "匪徒配刀","匪徒配刀",Material.GOLDEN_SWORD).giveItem(players,1);
-                        new LavaItem(999, "C4炸弹", "C4炸弹，可以摧毁一片建筑", Material.GOLDEN_APPLE, "物品", 999).giveItem(players, 1);
+                        if(C4F){
+                            C4F = false;
+                            new LavaItem(999, "C4炸弹", "C4炸弹，可以摧毁一片建筑", Material.GOLDEN_APPLE, "物品", 999).giveItem(players, 1);
+                        }
 
                     }else{
                         Location a = MoltenWar.instance.getConfig().getLocation("blueSpawn");
@@ -171,14 +179,13 @@ public class MenusListener implements Listener {
                         players.teleport(a);
                     }
 
-
-                    //new LavaCaster(5, "手榴弹","手榴弹，右键丢出",Material.STONE_BUTTON).giveItem(players,2);
-                    //players.setMaxHealth(100);
                     players.setGameMode(GameMode.SURVIVAL);
                     players.setCustomNameVisible(false);
                     players.closeInventory();
                 }
-                playingT = new Playing();
+                playingT = new Playing(TC,CTC);
+                speakToAllPlayers(ChatColor.YELLOW+"游戏开始!");
+                speakToAllPlayers("T阵营人数 "+TC+" | CT阵营人数 "+CTC);
                 playingT.start();
             }
             if (clickedItem.getItemMeta().getDisplayName().equals(playMenu.AKM)){

@@ -23,6 +23,9 @@ public final class MoltenWar extends JavaPlugin {
     private static Economy econ = null;
     public static JavaPlugin instance;
 
+
+    public static Location c4Loc;
+
     public static int mode;
     public static boolean friendlyFire;
 
@@ -39,7 +42,7 @@ public final class MoltenWar extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new MenusListener(), this);  //注册菜单监听器
         Bukkit.getPluginManager().registerEvents(new WeaponListener(), this);  //注册武器监听器
         if (!setupEconomy() ) {
-            log.severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
+            log.severe(String.format("[%s] - 没有找到Vault前置", getDescription().getName()));
             getServer().getPluginManager().disablePlugin(this);
         }
     }
